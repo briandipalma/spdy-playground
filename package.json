@@ -1,0 +1,14 @@
+{
+  "name": "spdy-playground",
+  "version": "0.0.0",
+  "description": "Testing SPDY",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "BSD-2-Clause",
+  "dependencies": {
+    "spdy": "~1.17.6"
+  }
+}
