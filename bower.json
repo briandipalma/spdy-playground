@@ -1,0 +1,21 @@
+{
+  "name": "spdy-playground",
+  "version": "0.0.0",
+  "homepage": "https://github.com/briandipalma/spdy-playground",
+  "authors": [
+    "Brian Di Palma <offler@gmail.com>"
+  ],
+  "description": "SPDY testing",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "dcl": "~1.1.1"
+  }
+}

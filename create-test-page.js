@@ -8,7 +8,11 @@ var numberOfJSFilesToLoad = parseInt(process.argv[2], 10);
 var numberOfCSSFilesToLoad = parseInt(process.argv[3], 10);
 
 if(Number.isNaN(numberOfJSFilesToLoad)) {
-    console.info("Number of JS files not provided as first argument using default of 100");
+    numberOfJSFilesToLoad = 100;
+    console.info("Number of JS files not provided as first argument using default of", numberOfJSFilesToLoad);
 }
 
-console.info(numberOfJSFilesToLoad, numberOfCSSFilesToLoad);
+if(Number.isNaN(numberOfCSSFilesToLoad)) {
+    numberOfCSSFilesToLoad = numberOfJSFilesToLoad / 10;
+    console.info("Number of CSS files not provided as second argument using default of", numberOfCSSFilesToLoad);
+}
