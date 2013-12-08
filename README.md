@@ -9,5 +9,5 @@ To Create a test web page with the resources that are to be loaded via SPDY run:
 
 <code>node create-test-page.js [numberOfJsFilesToLoad] [numberOfCSSFilesToLoad]</code>.
 
-This will generate an index.html page with the required number of <code><script></code>
-and <code><link></code> tags.
+This will generate an index.html page with the required number of <code>&lt;script&gt;</code>
+and <code>&lt;link&gt;</code> tags.
