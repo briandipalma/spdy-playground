@@ -9,6 +9,7 @@
   "author": "",
   "license": "BSD-2-Clause",
   "dependencies": {
-    "spdy": "~1.17.6"
+    "spdy": "~1.17.6",
+    "bower": "~1.2.8"
   }
 }

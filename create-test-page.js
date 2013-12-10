@@ -1,7 +1,3 @@
-//I want to call this like so
-// node create-test-page 100 10
-//and it spits out an index.html file with 100 script tags with src="js/jsfile0-100.js"
-//and 10 link tags with src="css/cssfile0-100.css"
 "use strict";
 
 var fs = require("fs");
@@ -52,3 +48,37 @@ var htmlTestPageMarkup = htmlTemplate.
 
 fs.writeFileSync("index.html", htmlTestPageMarkup);
 
+bower.commands.
+        list({paths: true}).
+        on("end", function (results){
+            var firstPackage = Object.keys(results)[0];
+            var locationOfSeedFile = results[firstPackage];
+
+            createDirectoryForTestFiles("js");
+            createDirectoryForTestFiles("css");
+
+            createTestFiles(locationOfSeedFile, numberOfJSFilesToLoad, "/js/javascript", ".js");
+            createTestFiles("csstemplate.css", numberOfCSSFilesToLoad, "/css/css", ".css");
+        });
+
+function createTestFiles (locationOfSeedFile, numberOfFilesToLoad, prepend, append) {
+    var stream = fs.createReadStream(__dirname + "/" + locationOfSeedFile);
+    stream.setMaxListeners(numberOfFilesToLoad + 10);
+
+    for (var i = 0; i < numberOfFilesToLoad; i++) {
+        var writeStream = fs.createWriteStream(__dirname + prepend + i + append);
+        stream.pipe(writeStream);
+        
+        writeStream.on("error", function () {
+            console.dir(arguments)
+        });
+    }
+};
+
+function createDirectoryForTestFiles (directoryName) {
+    try {
+        fs.mkdirSync("./" + directoryName);
+    } catch (e) {
+        console.info(directoryName, "directory already exists will not create it.");
+    }
+};
