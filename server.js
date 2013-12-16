@@ -11,24 +11,18 @@ var options = {
 
 var indexhtml = fs.readFileSync('index.html'),
     server = spdy.createServer(options, requestReceived);
-    
-//    headers['Content-Type'] = 'text/html';
-//     headers['Content-Length'] = body.length;
-//
-//  response.writeHead(status, headers);
-//
-//  response.end(body);
 
 function requestReceived(request, response) {
-    switch(request.url){
-        case "/":
-            headers['Content-Type'] = 'text/html';
-            body = indexhtml
-            break;
-    }
+    console.info(request.url, "Request");
     
     if(request.url === "/") {
-        
+        var headers = {
+            "Content-Type": "text/html"
+        }
+        headers["Content-Length"] = indexhtml.length;
+
+        response.writeHead(200, headers);
+        response.end(indexhtml);
     }
 
 //    var headers = {
@@ -45,7 +39,7 @@ function requestReceived(request, response) {
 //    if (request.isSpdy){
 //    message = "YAY! SPDY Works!"
 //  }
-}
+};
 
 function pushRequiredResource() {
     

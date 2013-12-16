@@ -13,3 +13,7 @@ The two arguments are optional.
 
 This will generate an index.html page with the required number of <code>&lt;script&gt;</code>
 and <code>&lt;link&gt;</code> tags and the required JS and CSS files.
+
+`node server.js`
+
+Navigate to `https://localhost:8081/`.
