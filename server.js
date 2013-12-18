@@ -14,6 +14,14 @@ var jsFiles = [],
     indexhtml = fs.readFileSync('index.html'),
     server = spdy.createServer(options, requestReceived);
 
+loadAllResourceFiles(100, jsFiles, "/js/javascript", ".js");
+
+console.info("Loaded all Js files");
+
+loadAllResourceFiles(10, cssFiles, "/css/css", ".css");
+
+console.info("Loaded all Css files");
+
 /**
  * Load all files that will be requested on index load, to allow us to push the files to the browser.
  * 
@@ -28,10 +36,6 @@ function loadAllResourceFiles(numberOfFiles, fileArray, prepend, append) {
 		fileArray.push(fs.readFileSync(__dirname + prepend + file + append));
 	}
 }
-
-loadAllResourceFiles(100, jsFiles, "/js/javascript", ".js");
-
-console.info("Loaded all Js files");
 
 function requestReceived(request, response) {
     console.info(request.url, "Request");
