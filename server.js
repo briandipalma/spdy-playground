@@ -9,16 +9,15 @@ var options = {
         cert: fs.readFileSync(__dirname + "/keys/server.crt")
     };
 
-var jsFiles = [],
-    cssFiles = [],
+var resourceFiles = {},
     indexhtml = fs.readFileSync('index.html'),
     server = spdy.createServer(options, requestReceived);
 
-loadAllResourceFiles(100, jsFiles, "/js/javascript", ".js");
+loadAllResourceFiles(100, "/js/javascript", ".js");
 
 console.info("Loaded all Js files");
 
-loadAllResourceFiles(10, cssFiles, "/css/css", ".css");
+loadAllResourceFiles(10, "/css/css", ".css");
 
 console.info("Loaded all Css files");
 
@@ -31,14 +30,17 @@ console.info("Loaded all Css files");
  * @param {type} append
  * @returns {undefined}
  */
-function loadAllResourceFiles(numberOfFiles, fileArray, prepend, append) {
+function loadAllResourceFiles(numberOfFiles, prepend, append) {
 	for (var file = 0; file < numberOfFiles; file++) {
-		fileArray.push(fs.readFileSync(__dirname + prepend + file + append));
+		var fileName = prepend + file + append,
+			resourceFile = fs.readFileSync(__dirname + fileName);
+
+		resourceFiles[fileName] = resourceFile;
 	}
 }
 
 function requestReceived(request, response) {
-    console.info(request.url, "Request");
+    console.info("Request", request.url);
     
     if(request.url === "/") {
         var headers = {
@@ -53,21 +55,24 @@ function requestReceived(request, response) {
 			console.info("YAY! SPDY Works!");
 		}
     } else {
-		response.end(fs.readFileSync(__dirname + request.url));
+		response.end(resourceFiles[request.url]);
 	}
 };
 
-function pushRequiredResource() {
-//    var headers = {
-//        "content-type": "application/javascript"
-//    };
+function pushRequiredResource(contentType, resourceName, resourceFile) {
+	//"application/javascript"
+	
+	var headers = {
+		"content-type": contentType
+	};
 
-//    response.push('/backbone.js', headers, function(err, stream){
-//      if (err) return;
-//
-//      stream.end(backbone);
-//    });
-    
+	response.push(resourceName, headers, function(err, stream){
+		if (err) {
+			console.info("Error loading", resourceName);
+		};
+
+		stream.end(resourceFile);
+	});
 }
 
 server.listen(8081, function(){
