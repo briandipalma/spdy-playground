@@ -48,13 +48,13 @@ function requestReceived(request, response) {
 
         response.writeHead(200, headers);
         response.end(indexhtml);
-    }
 
-    
-    
-//    if (request.isSpdy){
-//    message = "YAY! SPDY Works!"
-//  }
+		if (request.isSpdy) {
+			console.info("YAY! SPDY Works!");
+		}
+    } else {
+		response.end(fs.readFileSync(__dirname + request.url));
+	}
 };
 
 function pushRequiredResource() {
