@@ -10,6 +10,8 @@ var options = {
     };
 
 var resourceFiles = {},
+	numberOfJsFiles = 100,
+	numberOfCssFiles = 10,
     indexhtml = fs.readFileSync('index.html'),
     server = spdy.createServer(options, requestReceived);
 
@@ -25,7 +27,6 @@ console.info("Loaded all Css files");
  * Load all files that will be requested on index load, to allow us to push the files to the browser.
  * 
  * @param {type} numberOfFiles
- * @param {type} fileArray
  * @param {type} prepend
  * @param {type} append
  * @returns {undefined}
@@ -59,14 +60,21 @@ function requestReceived(request, response) {
 	}
 };
 
-function pushRequiredResource(contentType, resourceName, resourceFile) {
-	//"application/javascript"
-	
+function pushIndexHtmlResources(serverResponse) {
+	for(var jsFile = 0; jsFile < numberOfJsFiles; jsFile++) {
+		var jsFileName = "/js/javascript" + jsFile + ".js",
+			jsFileContents = resourceFiles[jsFileName];
+
+		pushResource("application/javascript", serverResponse, jsFileName, jsFileContents);
+	}
+}
+
+function pushResource(contentType, serverResponse, resourceName, resourceFile) {
 	var headers = {
 		"content-type": contentType
 	};
 
-	response.push(resourceName, headers, function(err, stream){
+	serverResponse.push(resourceName, headers, function(err, stream){
 		if (err) {
 			console.info("Error loading", resourceName);
 		};
