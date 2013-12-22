@@ -48,6 +48,8 @@ function requestReceived(request, response) {
             "Content-Type": "text/html"
         };
         headers["Content-Length"] = indexhtml.length;
+		
+//		pushIndexHtmlResources(100, "/js/javascript", ".js", "application/javascript", response);
 
         response.writeHead(200, headers);
         response.end(indexhtml);
@@ -60,12 +62,12 @@ function requestReceived(request, response) {
 	}
 };
 
-function pushIndexHtmlResources(serverResponse) {
-	for(var jsFile = 0; jsFile < numberOfJsFiles; jsFile++) {
-		var jsFileName = "/js/javascript" + jsFile + ".js",
-			jsFileContents = resourceFiles[jsFileName];
+function pushIndexHtmlResources(numberOfFiles, prepend, append, contentType, serverResponse) {
+	for(var file = 0; file < numberOfFiles; file++) {
+		var fileName = prepend + file + append,
+			fileContents = resourceFiles[fileName];
 
-		pushResource("application/javascript", serverResponse, jsFileName, jsFileContents);
+		pushResource(contentType, serverResponse, fileName, fileContents);
 	}
 }
 
