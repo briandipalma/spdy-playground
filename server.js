@@ -1,19 +1,23 @@
 "use strict";
 
 var spdy = require('spdy'),
-    fs = require('fs');
+	fs = require('fs');
 
 var options = {
-        ca: fs.readFileSync(__dirname + "/keys/server.csr"),
-        key: fs.readFileSync(__dirname + "/keys/server.key"),
-        cert: fs.readFileSync(__dirname + "/keys/server.crt")
-    };
+		ca: fs.readFileSync(__dirname + "/keys/server.csr"),
+		key: fs.readFileSync(__dirname + "/keys/server.key"),
+		cert: fs.readFileSync(__dirname + "/keys/server.crt")
+	};
 
 var resourceFiles = {},
 	numberOfJsFiles = 100,
 	numberOfCssFiles = 10,
     indexhtml = fs.readFileSync('index.html'),
     server = spdy.createServer(options, requestReceived);
+
+server.listen(8081, function(){
+	console.log("SPDY Server started on 8081");
+});
 
 loadAllResourceFiles(100, "/js/javascript", ".js");
 
@@ -22,23 +26,6 @@ console.info("Loaded all Js files");
 loadAllResourceFiles(10, "/css/css", ".css");
 
 console.info("Loaded all Css files");
-
-/**
- * Load all files that will be requested on index load, to allow us to push the files to the browser.
- * 
- * @param {type} numberOfFiles
- * @param {type} prepend
- * @param {type} append
- * @returns {undefined}
- */
-function loadAllResourceFiles(numberOfFiles, prepend, append) {
-	for (var file = 0; file < numberOfFiles; file++) {
-		var fileName = prepend + file + append,
-			resourceFile = fs.readFileSync(__dirname + fileName);
-
-		resourceFiles[fileName] = resourceFile;
-	}
-}
 
 function requestReceived(request, response) {
     console.info("Request", request.url);
@@ -62,6 +49,23 @@ function requestReceived(request, response) {
 	}
 };
 
+/**
+ * Load all files that will be requested on index load, to allow us to push the files to the browser.
+ * 
+ * @param {type} numberOfFiles
+ * @param {type} prepend
+ * @param {type} append
+ * @returns {undefined}
+ */
+function loadAllResourceFiles(numberOfFiles, prepend, append) {
+	for (var file = 0; file < numberOfFiles; file++) {
+		var fileName = prepend + file + append,
+			resourceFile = fs.readFileSync(__dirname + fileName);
+
+		resourceFiles[fileName] = resourceFile;
+	}
+}
+
 function pushIndexHtmlResources(numberOfFiles, prepend, append, contentType, serverResponse) {
 	for(var file = 0; file < numberOfFiles; file++) {
 		var fileName = prepend + file + append,
@@ -84,7 +88,3 @@ function pushResource(contentType, serverResponse, resourceName, resourceFile) {
 		stream.end(resourceFile);
 	});
 }
-
-server.listen(8081, function(){
-  console.log("SPDY Server started on 8081");
-});
