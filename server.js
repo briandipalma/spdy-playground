@@ -21,13 +21,13 @@ server.listen(8081, function(){
 	console.log("SPDY Server started on 8081");
 });
 
-loadAllResourceFiles(100, "/js/javascript", ".js");
-
-console.info("Loaded all Js files");
-
-loadAllResourceFiles(10, "/css/css", ".css");
+loadAllResourceFiles(numberOfCssFiles, "/css/css", ".css");
 
 console.info("Loaded all Css files");
+
+loadAllResourceFiles(numberOfJsFiles, "/js/javascript", ".js");
+
+console.info("Loaded all Js files");
 
 function requestReceived(request, response) {
 	console.info("Request", request.url);
@@ -59,8 +59,8 @@ function loadAllResourceFiles(numberOfFiles, prepend, append) {
 function handleRootClientRequest(request, response) {
 	if (request.isSpdy) {
 		console.info("YAY! SPDY Works!");
-		pushIndexHtmlResources(10, "/css/css", ".css", "text/css", response);
-		pushIndexHtmlResources(100, "/js/javascript", ".js", "application/javascript", response);
+		pushIndexHtmlResources(numberOfCssFiles, "/css/css", ".css", "text/css", response);
+		pushIndexHtmlResources(numberOfJsFiles, "/js/javascript", ".js", "application/javascript", response);
 	}
 
 	var headers = {
@@ -86,7 +86,7 @@ function pushResource(contentType, serverResponse, resourceName, resourceFile) {
 		"content-type": contentType
 	};
 
-	serverResponse.push(resourceName, headers, function(err, stream){
+	serverResponse.push(resourceName, headers, function(err, stream) {
 		if (err) {
 			console.info("Error loading", resourceName);
 		};
