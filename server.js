@@ -6,14 +6,16 @@ var spdy = require('spdy'),
 var options = {
 		ca: fs.readFileSync(__dirname + "/keys/server.csr"),
 		key: fs.readFileSync(__dirname + "/keys/server.key"),
-		cert: fs.readFileSync(__dirname + "/keys/server.crt")
+		cert: fs.readFileSync(__dirname + "/keys/server.crt"),
+		windowSize: 1024 * 1024,
+		autoSpdy31: false
 	};
 
 var resourceFiles = {},
 	numberOfJsFiles = 100,
 	numberOfCssFiles = 10,
-    indexhtml = fs.readFileSync('index.html'),
-    server = spdy.createServer(options, requestReceived);
+	indexhtml = fs.readFileSync('index.html'),
+	server = spdy.createServer(options, requestReceived);
 
 server.listen(8081, function(){
 	console.log("SPDY Server started on 8081");
@@ -28,23 +30,11 @@ loadAllResourceFiles(10, "/css/css", ".css");
 console.info("Loaded all Css files");
 
 function requestReceived(request, response) {
-    console.info("Request", request.url);
-    
-    if(request.url === "/") {
-        var headers = {
-            "Content-Type": "text/html"
-        };
-        headers["Content-Length"] = indexhtml.length;
-		
-//		pushIndexHtmlResources(100, "/js/javascript", ".js", "application/javascript", response);
+	console.info("Request", request.url);
 
-        response.writeHead(200, headers);
-        response.end(indexhtml);
-
-		if (request.isSpdy) {
-			console.info("YAY! SPDY Works!");
-		}
-    } else {
+	if(request.url === "/") {
+		handleRootClientRequest(request, response);
+	} else {
 		response.end(resourceFiles[request.url]);
 	}
 };
@@ -64,6 +54,22 @@ function loadAllResourceFiles(numberOfFiles, prepend, append) {
 
 		resourceFiles[fileName] = resourceFile;
 	}
+}
+
+function handleRootClientRequest(request, response) {
+	if (request.isSpdy) {
+		console.info("YAY! SPDY Works!");
+		pushIndexHtmlResources(10, "/css/css", ".css", "text/css", response);
+		pushIndexHtmlResources(100, "/js/javascript", ".js", "application/javascript", response);
+	}
+
+	var headers = {
+		"Content-Type": "text/html"
+	};
+	headers["Content-Length"] = indexhtml.length;
+
+	response.writeHead(200, headers);
+	response.end(indexhtml);
 }
 
 function pushIndexHtmlResources(numberOfFiles, prepend, append, contentType, serverResponse) {
