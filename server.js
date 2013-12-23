@@ -32,7 +32,7 @@ console.info("Loaded all Css files");
 function requestReceived(request, response) {
 	console.info("Request", request.url);
 
-	if(request.url === "/") {
+	if (request.url === "/") {
 		handleRootClientRequest(request, response);
 	} else {
 		response.end(resourceFiles[request.url]);
@@ -73,7 +73,7 @@ function handleRootClientRequest(request, response) {
 }
 
 function pushIndexHtmlResources(numberOfFiles, prepend, append, contentType, serverResponse) {
-	for(var file = 0; file < numberOfFiles; file++) {
+	for (var file = 0; file < numberOfFiles; file++) {
 		var fileName = prepend + file + append,
 			fileContents = resourceFiles[fileName];
 
