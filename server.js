@@ -6,91 +6,108 @@ var spdy = require('spdy'),
 var options = {
 		ca: fs.readFileSync(__dirname + "/keys/server.csr"),
 		key: fs.readFileSync(__dirname + "/keys/server.key"),
-		cert: fs.readFileSync(__dirname + "/keys/server.crt"),
-		windowSize: 1024 * 1024,
-		autoSpdy31: false
+		cert: fs.readFileSync(__dirname + "/keys/server.crt")
 	};
 
-var resourceFiles = {},
+var resourceFiles = [],
 	numberOfJsFiles = 100,
 	numberOfCssFiles = 10,
+	MAX_CONCURRENT_STREAMS = 50,
 	indexhtml = fs.readFileSync('index.html'),
-	server = spdy.createServer(options, requestReceived);
+	server = spdy.createServer(options, clientRequestReceived);
 
 server.listen(8081, function(){
 	console.log("SPDY Server started on 8081");
 });
 
-loadAllResourceFiles(numberOfCssFiles, "/css/css", ".css");
+resourceFiles.push({name: "/", file: indexhtml, contentType: "text/html"});
+
+preloadResourceFiles(numberOfCssFiles, "/css/css", ".css", "text/css");
 
 console.info("Loaded all Css files");
 
-loadAllResourceFiles(numberOfJsFiles, "/js/javascript", ".js");
+preloadResourceFiles(numberOfJsFiles, "/js/javascript", ".js", "application/javascript");
 
 console.info("Loaded all Js files");
 
-function requestReceived(request, response) {
+function clientRequestReceived(request, response) {
 	console.info("Request", request.url);
 
-	if (request.url === "/") {
-		handleRootClientRequest(request, response);
-	} else {
-		response.end(resourceFiles[request.url]);
+	if (request.isSpdy) {
+		console.info("SPDY!", request.spdyVersion);
 	}
+
+	var indexOfFile = findIndexOfResouceFile(request.url),
+		requestedFileInfo = resourceFiles[indexOfFile];
+	
+	pushMaxConcurrentStreamResourcesToClient(indexOfFile, response);	
+	sendFileRequestedToClient(response, requestedFileInfo);
 };
 
 /**
- * Load all files that will be requested on index load, to allow us to push the files to the browser.
+ * Pre-load all files that will be requested by client, to allow us to push the files to the browser
+ * as soon as we receive a request.
  * 
  * @param {type} numberOfFiles
  * @param {type} prepend
  * @param {type} append
+ * @param {type} contentType
  * @returns {undefined}
  */
-function loadAllResourceFiles(numberOfFiles, prepend, append) {
+function preloadResourceFiles(numberOfFiles, prepend, append, contentType) {
 	for (var file = 0; file < numberOfFiles; file++) {
 		var fileName = prepend + file + append,
 			resourceFile = fs.readFileSync(__dirname + fileName);
 
-		resourceFiles[fileName] = resourceFile;
+		resourceFiles.push({name: fileName, file: resourceFile, contentType: contentType});
 	}
 }
 
-function handleRootClientRequest(request, response) {
-	if (request.isSpdy) {
-		console.info("YAY! SPDY Works!");
-		pushIndexHtmlResources(numberOfCssFiles, "/css/css", ".css", "text/css", response);
-		pushIndexHtmlResources(numberOfJsFiles, "/js/javascript", ".js", "application/javascript", response);
+function findIndexOfResouceFile(fileName) {
+	var files = resourceFiles.length;
+
+	for (var file = 0; file < files; file++) {
+		if(resourceFiles[file].name === fileName) {
+			return file;
+		}
 	}
+};
 
-	var headers = {
-		"Content-Type": "text/html"
-	};
-	headers["Content-Length"] = indexhtml.length;
+function pushMaxConcurrentStreamResourcesToClient(indexOfFile, response) {
+	var pushedFile = indexOfFile + 1,
+		maxPossiblePushedResource = Math.min(pushedFile + MAX_CONCURRENT_STREAMS, resourceFiles.length);
 
-	response.writeHead(200, headers);
-	response.end(indexhtml);
-}
+	for (; pushedFile < maxPossiblePushedResource; pushedFile++) {		
+		var fileInfo = resourceFiles[pushedFile];
+		
+		console.info("Pushing", fileInfo.contentType, fileInfo.name, fileInfo.file);
 
-function pushIndexHtmlResources(numberOfFiles, prepend, append, contentType, serverResponse) {
-	for (var file = 0; file < numberOfFiles; file++) {
-		var fileName = prepend + file + append,
-			fileContents = resourceFiles[fileName];
-
-		pushResource(contentType, serverResponse, fileName, fileContents);
+		pushResource(fileInfo.contentType, response, fileInfo.name, fileInfo.file);
 	}
 }
 
 function pushResource(contentType, serverResponse, resourceName, resourceFile) {
 	var headers = {
-		"content-type": contentType
+		"Content-Type": contentType
 	};
+	headers["Content-Length"] = resourceFile.length;
 
 	serverResponse.push(resourceName, headers, function(err, stream) {
 		if (err) {
 			console.info("Error loading", resourceName);
-		};
+		} else {
+			console.info("Pushed", resourceName);
 
-		stream.end(resourceFile);
+			stream.end(resourceFile);
+		}
 	});
+}
+
+function sendFileRequestedToClient(response, requestedFileInfo) {
+	var headers = {};
+	headers["Content-Type"] = requestedFileInfo.contentType;
+	headers["Content-Length"] = requestedFileInfo.file.length;
+
+	response.writeHead(200, headers);
+	response.end(requestedFileInfo.file);
 }
