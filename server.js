@@ -10,8 +10,8 @@ var options = {
 	};
 
 var resourceFiles = [],
-	numberOfJsFiles = 100,
-	numberOfCssFiles = 10,
+	numberOfJsFiles = 1,
+	numberOfCssFiles = 1,
 	MAX_CONCURRENT_STREAMS = 50,
 	indexhtml = fs.readFileSync('index.html'),
 	server = spdy.createServer(options, clientRequestReceived);
@@ -32,10 +32,6 @@ console.info("Loaded all Js files");
 
 function clientRequestReceived(request, response) {
 	console.info("Request", request.url);
-
-	if (request.isSpdy) {
-		console.info("SPDY!", request.spdyVersion);
-	}
 
 	var indexOfFile = findIndexOfResouceFile(request.url),
 		requestedFileInfo = resourceFiles[indexOfFile];
